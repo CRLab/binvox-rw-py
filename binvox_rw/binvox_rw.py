@@ -27,7 +27,7 @@ Binvox to Numpy and back.
 >>> m1.dims
 [32, 32, 32]
 >>> m1.scale
-41.133000000000003
+41.133
 >>> m1.translate
 [0.0, 0.0, 0.0]
 >>> with open('chair_out.binvox', 'wb') as f:
@@ -257,27 +257,53 @@ def write(voxel_model, fp):
     elif voxel_model.axis_order=='xyz':
         voxels_flat = np.transpose(dense_voxel_data, (0, 2, 1)).flatten()
 
+    # New algorithm for generating binvox files
+    # Find all positions in the voxel_flat array that are not equal to previous values
+    run_starts = np.concatenate((np.array([0]), np.where(voxels_flat[1:] != voxels_flat[:-1])[0] + 1), axis=1)
+    # Calculate the lengths of each run by taking the difference of the run_starts from the next one
+    lengths = (run_starts[1:] - run_starts[:-1]).tolist() + [len(voxels_flat) - run_starts[-1]]
+    # Acquire all values in the array for each run
+    values = voxels_flat[run_starts]
+
+    # Store some work that would otherwise be run redundantly
+    values = map(chr, values)
+    chr_255 = chr(255)
+
+    # Generate a list of strings and join them together
+    # (state + chr_255) * (ctr / 255) + state + chr(ctr % 255) is merely taking each state and ctr value
+    # and generating an associated string by expanding the ctr term into a sequence of tokens that would
+    # otherwise be generated
+    # This is heavily minimized and not written for readability
+    fp.write(''.join(
+        [(state + chr_255) * (ctr / 255) + state + chr(ctr % 255) if ctr > 255 else state + chr(ctr % 255) for
+         state, ctr in zip(values, lengths)]))
+
+    # fp.write(''.join(((chr(state) + chr(255)) * (ctr / 255)) + chr(state) + chr(ctr % 255) for state, ctr in zip(values, lengths)))
+
+    # Old algorithm that relied too heavily on writes
+    # Ended up being slow for larger binvox files
+
     # keep a sort of state machine for writing run length encoding
-    state = voxels_flat[0]
-    ctr = 0
-    for c in voxels_flat:
-        if c==state:
-            ctr += 1
-            # if ctr hits max, dump
-            if ctr==255:
-                fp.write(chr(state))
-                fp.write(chr(ctr))
-                ctr = 0
-        else:
-            # if switch state, dump
-            fp.write(chr(state))
-            fp.write(chr(ctr))
-            state = c
-            ctr = 1
-    # flush out remainders
-    if ctr > 0:
-        fp.write(chr(state))
-        fp.write(chr(ctr))
+    # state = voxels_flat[0]
+    # ctr = 0
+    # for c in voxels_flat:
+    #     if c==state:
+    #         ctr += 1
+    #         # if ctr hits max, dump
+    #         if ctr==255:
+    #             fp.write(chr(state))
+    #             fp.write(chr(ctr))
+    #             ctr = 0
+    #     else:
+    #         # if switch state, dump
+    #         fp.write(chr(state))
+    #         fp.write(chr(ctr))
+    #         state = c
+    #         ctr = 1
+    # # flush out remainders
+    # if ctr > 0:
+    #     fp.write(chr(state))
+    #     fp.write(chr(ctr))
 
 if __name__ == '__main__':
     import doctest
