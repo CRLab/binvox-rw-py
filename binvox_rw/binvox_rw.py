@@ -284,7 +284,7 @@ def write(voxel_model, fp, fast=True):
                          else state + chr(ctr)
                          for state, ctr in zip(values, lengths)]))
 
-        fp.close()
+        #fp.close()
 
     # Old algorithm that relied too heavily on writes
     # Ended up being slow for larger binvox files
