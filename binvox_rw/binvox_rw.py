@@ -262,7 +262,7 @@ def write(voxel_model, fp, fast=True):
         # IPython.embed()
         # New algorithm for generating binvox files
         # Find all positions in the voxel_flat array that are not equal to previous values
-        if np.__version__ == "1.12.1" or np.__version__ == "1.11.1":
+        if np.__version__ == "1.12.1" or np.__version__ == "1.11.0":
             run_starts = np.concatenate((np.array([0]), np.where(voxels_flat[1:] != voxels_flat[:-1])[0] + 1), axis=0)
         else:
             run_starts = np.concatenate((np.array([0]), np.where(voxels_flat[1:] != voxels_flat[:-1])[0] + 1), axis=1)
