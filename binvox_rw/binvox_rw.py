@@ -21,7 +21,7 @@ Binvox to Numpy and back.
 
 >>> import numpy as np
 >>> import binvox_rw
->>> with open('chair.binvox', 'rb') as f:
+>>> with open('../data/chair.binvox', 'rb') as f:
 ...     m1 = binvox_rw.read_as_3d_array(f)
 ...
 >>> m1.dims
@@ -30,10 +30,10 @@ Binvox to Numpy and back.
 41.133
 >>> m1.translate
 [0.0, 0.0, 0.0]
->>> with open('chair_out.binvox', 'wb') as f:
+>>> with open('../data/chair_out.binvox', 'wb') as f:
 ...     m1.write(f)
 ...
->>> with open('chair_out.binvox', 'rb') as f:
+>>> with open('../data/chair_out.binvox', 'rb') as f:
 ...     m2 = binvox_rw.read_as_3d_array(f)
 ...
 >>> m1.dims==m2.dims
@@ -45,10 +45,10 @@ True
 >>> np.all(m1.data==m2.data)
 True
 
->>> with open('chair.binvox', 'rb') as f:
+>>> with open('../data/chair.binvox', 'rb') as f:
 ...     md = binvox_rw.read_as_3d_array(f)
 ...
->>> with open('chair.binvox', 'rb') as f:
+>>> with open('../data/chair.binvox', 'rb') as f:
 ...     ms = binvox_rw.read_as_coord_array(f)
 ...
 >>> data_ds = binvox_rw.dense_to_sparse(md.data)
@@ -280,11 +280,11 @@ def write(voxel_model, fp, fast=True):
         # and generating an associated string by expanding the ctr term into a sequence of tokens that would
         # otherwise be generated
         # This is heavily minimized and not written for readability
-        fp.write(''.join([(state + chr_255) * (ctr / 255) + (state + chr(ctr % 255)) * (ctr % 255 > 0) if ctr > 255 else state + chr(ctr) for state, ctr in zip(values, lengths)]))
+        fp.write(''.join(['{}{}'.format((state + chr_255) * (ctr / 255), (state + chr(ctr % 255) if ctr % 255 > 0 else '')) if ctr > 255
+                         else state + chr(ctr)
+                         for state, ctr in zip(values, lengths)]))
 
         fp.close()
-
-    # fp.write(''.join(((chr(state) + chr(255)) * (ctr / 255)) + chr(state) + chr(ctr % 255) for state, ctr in zip(values, lengths)))
 
     # Old algorithm that relied too heavily on writes
     # Ended up being slow for larger binvox files
@@ -313,5 +313,8 @@ def write(voxel_model, fp, fast=True):
             fp.write(chr(ctr))
 
 if __name__ == '__main__':
+    # a = read_as_3d_array(open('../data/rubbermaid_ice_guard_pitcher_blue.binvox', 'rb'))
+    # import timeit
+    # print timeit.timeit(lambda: write(a, open('out.binvox', 'w'), fast=False), number=1)
     import doctest
     doctest.testmod()

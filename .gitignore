@@ -1,0 +1,5 @@
+.idea/*
+binvox_rw.egg*
+*.pyc
+build/*
+dist/*
