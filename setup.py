@@ -8,5 +8,5 @@ setup(name='binvox-rw',
       author_email='jakevarley@gmail.com',
       url='https://github.com/CRLab/binvox-rw-py',
       packages=['binvox_rw'],
-      package_dir={'': '.'}
+      package_dir={'': 'src'}
      )
